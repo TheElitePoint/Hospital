@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hospital Research Pipeline</title>
+  <link rel="stylesheet" href="/assets/styles.css?v=4">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">H</span><div><strong>Hospital Research</strong><small>SOP-controlled pipeline</small></div></div>
+      <nav>
+        <a class="active" href="#overview">Overview</a>
+        <a href="#quality">Quality gates</a>
+        <a href="#providers">Providers</a>
+        <a href="#activity">Run activity</a>
+      </nav>
+      <div class="policy"><strong>SOPs are authoritative</strong><p>Targets never lower evidence, identity, employment, duplicate, or activity rules.</p></div>
+    </aside>
+    <main>
+      <header>
+        <div><p class="eyebrow">CONTROL PLANE</p><h1>Research pipeline</h1><p>Discover hospitals, validate buying groups, and publish unique Golden people.</p></div>
+        <div class="header-actions"><span id="job-status" class="status idle">IDLE</span><a id="export-link" class="button secondary disabled" href="/api/export">Download Excel</a></div>
+      </header>
+
+      <section id="overview" class="panel run-panel">
+        <div><h2>Start a target run</h2><p>The target is the number of new unique SOP4 Golden people this run must add.</p></div>
+        <form id="run-form"><label>New Golden target<input id="target" type="number" min="1" max="10000" value="300" required></label><label class="mode-check"><input id="people-only" type="checkbox"> People only<br><small>Skip finding new hospitals - only discover/validate people at accounts already qualified</small></label><button class="button primary" type="submit">Start pipeline</button></form>
+        <div class="progress-wrap"><div class="progress-meta"><span id="progress-label">0 of 300 Golden people</span><strong id="progress-pct">0%</strong></div><div class="progress"><div id="progress-bar"></div></div></div>
+      </section>
+
+      <section class="metric-grid">
+        <article><span>People researched</span><strong id="m-researched">0</strong><small>All unique SOP2 records</small></article>
+        <article><span>Validated people</span><strong id="m-validated">0</strong><small>SOP3 VALIDATED_PASS</small></article>
+        <article class="gold"><span>Golden people</span><strong id="m-golden">0</strong><small>SOP4 selected</small></article>
+        <article><span>Remaining</span><strong id="m-remaining">300</strong><small>New Golden needed this run</small></article>
+        <article><span>Qualified accounts</span><strong id="m-accounts">0</strong><small>SOP1 PASS</small></article>
+        <article><span>Evidence rows</span><strong id="m-evidence">0</strong><small>Traceable source claims</small></article>
+      </section>
+
+      <section id="quality" class="two-col">
+        <article class="panel"><div class="section-head"><div><h2>Quality gates</h2><p>Counts update from SQLite.</p></div></div>
+          <div class="quality-list">
+            <div><span>Needs review</span><strong id="q-review">0</strong></div>
+            <div><span>Rejected</span><strong id="q-rejected">0</strong></div>
+            <div><span>Duplicates / collision flags</span><strong id="q-duplicates">0 / 0</strong></div>
+            <div><span>CMS universe</span><strong id="q-universe">0</strong></div>
+          </div>
+        </article>
+        <article id="providers" class="panel"><div class="section-head"><div><h2>Provider health</h2><p>Only key fingerprints and aggregate states are shown.</p></div><button type="button" id="add-keys-btn" class="text-button">+ Add keys</button></div><div id="provider-list" class="providers"></div></article>
+      </section>
+
+      <section id="activity" class="panel activity-panel"><div class="section-head"><div><h2>Run activity</h2><p id="stage-label">No active job.</p></div><button id="refresh" class="text-button">Refresh</button></div><div id="events" class="events"><div class="empty">Start a run to see stage output.</div></div></section>
+    </main>
+  </div>
+
+  <div id="key-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card"><p class="eyebrow" id="key-eyebrow">⚠ API KEY NEEDED</p><h2 id="key-heading">A provider is out of usable keys</h2><p id="key-body">All committed data is safe. Pick the provider and paste one or more replacement keys (comma or newline separated) - they're saved to the key pool <em>and</em> to <code>env-keys/.env</code> for next time.</p>
+      <form id="key-form">
+        <label class="modal-label">Provider<select id="key-provider-select"><option value="apify">Apify</option><option value="groq">Groq</option><option value="tavily">Tavily</option></select></label>
+        <textarea id="key-input" autocomplete="off" placeholder="Paste one or more API keys - comma-separated or one per line, either works" required rows="4"></textarea>
+        <div class="modal-actions"><button type="button" id="cancel-key" class="button secondary">Close</button><button type="submit" class="button primary">Save keys</button></div>
+      </form><p id="key-error" class="form-error"></p>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+  <script src="/assets/app.js?v=4"></script>
+</body>
+</html>

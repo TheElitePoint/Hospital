@@ -1,0 +1,27 @@
+# secrets and credentials
+env-keys/
+.env
+.env.*
+*.pem
+*credentials*.json
+*keys*.json
+*keys*.txt
+
+# data, databases and run artifacts
+pipeline/data/
+*.db
+*.db-shm
+*.db-wal
+outputs/
+pipeline/run/
+
+# environments and build output
+venv/
+.venv/
+node_modules
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+*.log
+pipeline/start_dashboard.command

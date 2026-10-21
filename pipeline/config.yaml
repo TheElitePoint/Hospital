@@ -1,0 +1,11 @@
+# Model split. Groq handles volume; the two judgement-heavy passes get a stronger model.
+models:
+  sop1_extract:     openai/gpt-oss-120b           # current Groq model, citation-validated
+  sop2_role_map:    openai/gpt-oss-120b
+  sop2_better_person: STRONGER                   # SOP 2 s16.6 - prevents title-prestige bias
+  sop3_adversarial:   STRONGER                   # SOP 3 s00.4 - must be a different lineage from SOP 2
+run:
+  review_share: 0.30
+  golden_target: 1000
+  cache_ttl_days: 30
+  states: [IN, OH, KY, TX, AL]                   # SOP 1 s03.1 - no independent expansion
