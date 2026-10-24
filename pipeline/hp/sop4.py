@@ -29,6 +29,7 @@ REACHABILITY = {"ACTIVE": 5, "INACTIVE": 2, "UNKNOWN": 1}
 VALID_COMMERCIAL_ROLES = set(PROBLEM_OWNERSHIP)
 VALID_ACTIVITY = set(REACHABILITY)
 ACTIVITY_REQUIRED_FROM = "2026-10-05"
+ACTIVITY_STRICT_FROM = "2026-10-24"  # from here on, a reaction in the last 90 days is mandatory again
 
 # s12 - role families that matter per use case, used for buying-group balance
 USE_CASE_ROLE_PRIORITY = {
@@ -82,7 +83,12 @@ def eligibility(rec):
         return False, "DUPLICATE_ROW"
     # User rule: people added from this date on need a LinkedIn reaction in the last 90
     # days. The earlier golden set was validated before the rule and is left as it was.
-    if (rec.get("validated_at") or "") >= ACTIVITY_REQUIRED_FROM and rec.get("linkedin_activity_status") not in ("ACTIVE", "INACTIVE"):  # INACTIVE allowed per user 2026-10-15 (lower gates); UNKNOWN/error still blocked
+    validated = rec.get("validated_at") or ""
+    status = rec.get("linkedin_activity_status")
+    if validated >= ACTIVITY_STRICT_FROM:
+        if status != "ACTIVE":
+            return False, "NO_ACTIVITY_IN_90_DAYS"
+    elif validated >= ACTIVITY_REQUIRED_FROM and status not in ("ACTIVE", "INACTIVE"):
         return False, "NO_ACTIVITY_IN_90_DAYS"
     return True, None
 
