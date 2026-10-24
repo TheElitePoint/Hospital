@@ -130,6 +130,37 @@ def write_tab(sheet, tab_name, records, columns, freeze_header=True):
                           "backgroundColor": {"red": .93, "green": .93, "blue": .93}})
     return len(values) - 1
 
+def _green_rows(sheet, ws, ncols):
+    """0-based data-row indexes (header excluded) where a person colored any cell green.
+    Those rows belong to someone else's review, so the sync leaves their values alone."""
+    meta = sheet.fetch_sheet_metadata(params={
+        "includeGridData": True,
+        "ranges": [f"'{ws.title}'!A1:{gspread_utils_a1(ncols)}"],
+        "fields": "sheets.data.rowData.values.effectiveFormat.backgroundColor"})
+    rows = meta["sheets"][0]["data"][0].get("rowData", [])
+    body = rows[1:]
+    hits = []
+    for row in body:
+        cols = set()
+        for k, cell in enumerate(row.get("values", [])):
+            c = (cell.get("effectiveFormat") or {}).get("backgroundColor") or {}
+            r, g, b = c.get("red", 0), c.get("green", 0), c.get("blue", 0)
+            if g > r + .08 and g > b + .08:
+                cols.add(k)
+        hits.append(cols)
+    # A column that is green on most rows is the tab's own styling, not someone's review mark.
+    counts = {}
+    for cols in hits:
+        for k in cols:
+            counts[k] = counts.get(k, 0) + 1
+    styled = {k for k, n in counts.items() if n > .5 * max(len(body), 1)}
+    green = {i for i, cols in enumerate(hits) if cols - styled}
+    return green
+
+def gspread_utils_a1(ncols):
+    import gspread
+    return gspread.utils.rowcol_to_a1(1, ncols).rstrip("0123456789")
+
 def _write_existing(sheet, tab_name, records):
     """Update an existing machine tab using its exact snake_case schema, in place.
 
@@ -152,12 +183,15 @@ def _write_existing(sheet, tab_name, records):
     by_key = {str(r.get(key_col)): r for r in records}
     seen_keys = set()
 
+    frozen = _green_rows(sheet, ws, len(headers)) if existing_rows else set()
     updated_existing = []
-    for row in existing_rows:
+    for i, row in enumerate(existing_rows):
         key = row[0] if row else None
         seen_keys.add(key)
         rec = by_key.get(key)
-        updated_existing.append([_cell(rec.get(h)) for h in headers] if rec else row)
+        # Green rows were marked by someone else: keep their values exactly as they are.
+        keep = row + [""] * (len(headers) - len(row)) if i in frozen else None
+        updated_existing.append(keep if keep is not None else ([_cell(rec.get(h)) for h in headers] if rec else row))
     new_records = [r for r in records if str(r.get(key_col)) not in seen_keys]
     new_rows = [[_cell(r.get(h)) for h in headers] for r in new_records]
 
